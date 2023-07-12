@@ -89,6 +89,9 @@ class ThreatQConnector(BaseConnector):
             'add_comment': self.add_comment,
             'add_tag': self.add_tag,
             'set_indicator_status': self.set_indicator_status,
+            
+            # Plugin Actions
+            'execute_plugin': self.execute_plugin
         }
 
     def _get_error_message_from_exception(self, e):
@@ -1719,6 +1722,130 @@ class ThreatQConnector(BaseConnector):
             results.append(obj)
 
         return results
+    
+    def _get_plugins(self):
+        """
+        Get plugin list from ThreatQ
+        
+        Returns: list of plugins
+        """
+       
+        # Query ThreatQ for a list of plugins
+        plugins = self.tq.get("/api/plugins?forceRefresh=N&with=action")
+        plugins = plugins["data"]
+        
+        for plugin in plugins:
+            for action in plugin['action']:
+                try:
+                    action["parameters"] = json.loads(action["parameters"].replace("\\", ""))
+                except json.JSONDecodeError:
+                    action["parameters"] = json.loads(action["parameters"])
+
+        return plugins
+    
+    def _execute_action(self, plugin_id, action_name, indicator_id, type="Indicator", parameters={}):
+        """
+        Executes plugin action from ThreatQ
+        
+        Returns: action response
+        """
+
+        data = {
+            "type": type,
+            "id": indicator_id,
+            "action": action_name,
+            "parameters": parameters
+        }
+
+        try:
+            response = self.tq.post(f"/api/plugins/{plugin_id}/execute", data=data)
+            self.save_progress(f"Plugin action {action_name} executed for IOC id {indicator_id}")
+        except Exception as e:
+            self.save_progress(f"Connection to server failed: {e}")
+            raise e
+        return response
+    
+    def execute_plugin(self, params):
+        """
+        Action to execute a plugin action in ThreatQ
+
+        Parameters:
+            - params (dict): Parameters from Phantom
+
+        Returns: Action result
+        """
+        
+        self.save_progress("In action handler for: {self.get_action_identifier()}")
+        
+        # Create action result
+        action_result = ActionResult(dict(params))
+        
+        # Set parameters
+        plugin_name = params.get("plugin_name", "")
+        action_name = params.get("action_name", "")
+        indicator_id = params.get("indicator_id", "")
+
+        try:
+            plugins = self._get_plugins()
+        except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
+            msg = f"{error_message} -- {traceback.format_exc()}"
+            self.debug_print(msg)
+            action_result.set_status(phantom.APP_ERROR, msg)
+            
+            return action_result
+        
+        plugin = [x for x in plugins if x['name'] == plugin_name]
+        
+        if not plugin:
+            message = f"{plugin_name} not found."
+            action_result.set_status(phantom.APP_ERROR, message)
+
+            return action_result
+
+        plugin_id = plugin[0]["id"]
+        actions = plugin[0]["action"]
+        
+        action = [x for x in actions if x["name"] == action_name]
+        
+        if not action:
+            message = f"{action_name} not found for {plugin_name}."
+            action_result.set_status(phantom.APP_ERROR, message)
+
+            return action_result
+        
+        plugin_parameters = {}
+        
+        for parameter in action[0]["parameters"]:
+            if parameter["type"] == "text":
+                plugin_parameters[parameter["name"]] = parameter.get("default", "")
+            if parameter["type"] == "multiselect":
+                plugin_parameters[parameter["name"]] = []
+                for option in parameter["options"]:
+                    if option["default"]:
+                        plugin_parameters[parameter["name"]].append(option["value"])
+            if parameter["type"] == "checkbox":
+                plugin_parameters[parameter["name"]] = parameter.get("default", False)
+            if parameter["type"] == "select":
+                for option in parameter["options"]:
+                    if option["default"]:
+                        plugin_parameters[parameter["name"]] = option["value"]
+
+        # Update from SOAR params
+        update_params = params.get("plugin_parameters", {})
+        if update_params:
+            plugin_parameters.update(json.loads(update_params))
+
+        # Execute plugin action
+        r = self._execute_action(plugin_id=plugin_id, action_name=action_name,
+                                 indicator_id=indicator_id, parameters=plugin_parameters)
+
+        data = r.get("data", {}).get("data",{}).get("data", {})
+        action_result.set_status(phantom.APP_SUCCESS)
+        action_result.add_data(data)
+        action_result.append_to_message("plugin execution complete.")
+        
+        return action_result
 
     def handle_action(self, params):
 

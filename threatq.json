@@ -1966,6 +1966,68 @@
                 }
             ],
             "versions": "EQ(*)"
+        },
+        {
+            "action": "execute plugin",
+            "description": "Execute plugin action",
+            "type": "generic",
+            "identifier": "execute_plugin",
+            "read_only": false,
+            "parameters": {
+                "plugin_name": {
+                    "description": "The name for the plugin to search for.",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0
+                },
+                "action_name": {
+                    "description": "The name for the plugin to search for.",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 1
+                },
+                "indicator_id": {
+                    "description": "The name for the plugin to search for.",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 2
+                },
+                "plugin_parameters": {
+                    "description": "JSON string of parameters for the plugin action.",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 3
+                }
+            },
+            "render": {
+                "type": "json",
+                "title": "ThreatQ Plugin Action Results"
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.plugin_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "virustotal"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                }
+            ],
+            "versions": "EQ(*)"
         }
     ],
     "pip_dependencies": {
