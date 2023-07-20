@@ -2121,6 +2121,73 @@
                 }
             ],
             "versions": "EQ(*)"
+        },
+        {
+            "action": "relate indicators",
+            "description": "relate indicators within ThreatQ",
+            "type": "generic",
+            "identifier": "relate_indicators",
+            "read_only": false,
+            "parameters": {
+                "main_indicator": {
+                    "description": "The value for the main indicator to link others to in ThreatQ",
+                    "data_type": "string",
+                    "required": true
+                },
+                "related_indicators": {
+                    "description": "The value for the related_indicators to link to the main in ThreatQ",
+                    "data_type": "string",
+                    "required": true
+                }
+            },
+            "render": {
+                "type": "custom",
+                "width": 12,
+                "height": 12,
+                "view": "threatq_views.render_uploaded",
+                "title": "ThreatQ Action Results"
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.main_indicator",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.related_indicators",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
         }
     ],
     "pip_dependencies": {

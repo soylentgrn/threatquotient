@@ -357,6 +357,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [create signature](#action-create-signature) - Create a signature within ThreatQ  
 [execute plugin](#action-execute-plugin) - Execute plugin action  
 [query signature](#action-query-signature) - query a signature within ThreatQ  
+[relate indicators](#action-relate-indicators) - relate indicators within ThreatQ  
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
@@ -841,6 +842,29 @@ action_result.data.\*.type.name | string |  |
 action_result.data.\*.value | string |  |  
 action_result.data.\*.attributes.name | string |  |  
 action_result.data.\*.attributes.value | string |  |  
+action_result.status | string |  |   success  failed 
+action_result.message | string |  |  
+action_result.summary | string |  |  
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1   
+
+## action: 'relate indicators'
+relate indicators within ThreatQ
+
+Type: **generic**  
+Read only: **False**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**main_indicator** |  required  | The value for the main indicator to link others to in ThreatQ | string | 
+**related_indicators** |  required  | The value for the related_indicators to link to the main in ThreatQ | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.parameter.main_indicator | string |  |  
+action_result.parameter.related_indicators | string |  |  
 action_result.status | string |  |   success  failed 
 action_result.message | string |  |  
 action_result.summary | string |  |  

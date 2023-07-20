@@ -90,6 +90,7 @@ class ThreatQConnector(BaseConnector):
             'add_comment': self.add_comment,
             'add_tag': self.add_tag,
             'set_indicator_status': self.set_indicator_status,
+            'relate_indicators': self.relate_indicators,
             
             # Plugin Actions
             'execute_plugin': self.execute_plugin
@@ -1905,6 +1906,62 @@ class ThreatQConnector(BaseConnector):
         results.append(action_result)
         
         return results
+    
+    def relate_indicators(self, params):
+        """
+        Action to query ThreatQ for signature matches
+
+        Parameters:
+            - params (dict): Parameters from Phantom
+
+        Returns: List of action results (per input indicator)
+        """
+
+        # Add action results
+        action_result = ActionResult(dict(params))
+        
+        try:
+            # Parse main indicator
+            parsed_indicator, _ = Utils.parse_agnostic_input(params["main_indicator"])
+            if not parsed_indicator:
+                message = f"Unable to parse indicator: {params['main_indicator']}"
+                self.debug_print(msg)
+                action_result.set_status(phantom.APP_ERROR, message)
+                return action_result
+
+            main_indicator_obj = ThreatQObject(self.tq, 'indicators')
+            main_indicator_obj.fill_from_api_response(parsed_indicator[0])
+            self.save_progress(f"Retrieving details for main indicator, {main_indicator_obj.value}")
+            main_indicator_obj.find()
+            
+            # Parse related indicators
+            related_indicator_list, unknown_related_indicators = Utils.parse_agnostic_input(params["related_indicators"])
+            self.save_progress(f"Parsed [{len(related_indicator_list)}] "
+                               f"indicators; Unable to parse [{len(unknown_related_indicators)}] strings")
+            
+            for item in related_indicator_list:
+                obj = ThreatQObject(self.tq, item["api_name"])
+                obj.fill_from_api_response(item)
+                self.save_progress(f"Retrieving details indicator {obj.value}")
+                obj.find()
+                if not obj.oid:
+                    obj.upload()
+                main_indicator_obj.relate_object(obj)
+
+            self.save_progress(f"Uploading new information to {main_indicator_obj.value}")
+            main_indicator_obj.upload()            
+        except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
+            msg = "{} -- {}".format(error_message, traceback.format_exc())
+            self.debug_print(msg)
+            action_result.set_status(phantom.APP_ERROR, THREATQ_ERROR_PARSE_INDICATOR_LIST.format(error=error_message))
+            return action_result
+        
+        action_result = self.set_data_response(action_result, main_indicator_obj)
+        action_result.set_status(phantom.APP_SUCCESS)
+        action_result.append_to_message("Relate objects complete.")
+        
+        return action_result
 
     def handle_action(self, params):
 
