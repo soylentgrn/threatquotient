@@ -2025,6 +2025,99 @@
                 {
                     "data_path": "action_result.summary",
                     "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "query signature",
+            "description": "query a signature within ThreatQ",
+            "type": "generic",
+            "identifier": "query_signatures",
+            "read_only": false,
+            "parameters": {
+                "signature": {
+                    "description": "The value for the signature uploaded to ThreatQ",
+                    "data_type": "string",
+                    "required": true
+                }
+            },
+            "render": {
+                "type": "custom",
+                "width": 12,
+                "height": 12,
+                "view": "threatq_views.render_uploaded",
+                "title": "ThreatQ Action Results"
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.signature",
+                    "data_type": "string",
+                    "example_values": [
+                        "rule ExampleRule { strings: $my_text_string = \\\"text here\\\" $my_hex_string = { E2 34 A1 C8 23 FB } condition: $my_text_string or $my_hex_string }"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.id",
+                    "data_type": "numeric"
+                },
+                {
+                    "data_path": "action_result.data.*.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.type.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.value",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attributes.name",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.attributes.value",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "versions": "EQ(*)"

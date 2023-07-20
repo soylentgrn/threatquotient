@@ -356,6 +356,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 [get related objects](#action-get-related-objects) - Query ThreatQ for an object's relationships  
 [create signature](#action-create-signature) - Create a signature within ThreatQ  
 [execute plugin](#action-execute-plugin) - Execute plugin action  
+[query signature](#action-query-signature) - query a signature within ThreatQ  
 
 ## action: 'test connectivity'
 Validate the asset configuration for connectivity
@@ -817,3 +818,31 @@ action_result.parameter.plugin_name | string |  |   virustotal
 action_result.data.\*.data | string |  |  
 action_result.message | string |  |  
 action_result.summary | string |  |  
+action_result.status | string |  |   success  failed   
+
+## action: 'query signature'
+query a signature within ThreatQ
+
+Type: **generic**  
+Read only: **False**
+
+#### Action Parameters
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**signature** |  required  | The value for the signature uploaded to ThreatQ | string | 
+
+#### Action Output
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.parameter.signature | string |  |   rule ExampleRule { strings: $my_text_string = \\"text here\\" $my_hex_string = { E2 34 A1 C8 23 FB } condition: $my_text_string or $my_hex_string } 
+action_result.data.\*.id | numeric |  |  
+action_result.data.\*.name | string |  |  
+action_result.data.\*.type.name | string |  |  
+action_result.data.\*.value | string |  |  
+action_result.data.\*.attributes.name | string |  |  
+action_result.data.\*.attributes.value | string |  |  
+action_result.status | string |  |   success  failed 
+action_result.message | string |  |  
+action_result.summary | string |  |  
+summary.total_objects | numeric |  |   1 
+summary.total_objects_successful | numeric |  |   1 

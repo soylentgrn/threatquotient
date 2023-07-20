@@ -72,6 +72,7 @@ class ThreatQConnector(BaseConnector):
             # Object Fetching
             'query_indicators': self.query_indicators,
             'get_related_objects': self.get_related_objects,
+            'query_signatures': self.query_signature,
 
             # Object Creation
             'create_custom_objects': self.create_custom_objects,
@@ -1847,6 +1848,64 @@ class ThreatQConnector(BaseConnector):
         
         return action_result
 
+    def query_signature(self, params):
+        """
+        Action to query ThreatQ for signature matches
+
+        Parameters:
+            - params (dict): Parameters from Phantom
+
+        Returns: List of action results (per input indicator)
+        """
+
+        # Add action results
+        action_result = ActionResult(dict(params))
+
+        # Get the passed items
+        signature = params['signature']
+        exact = params.get('exact', False)
+
+        results = []
+        # Add action results
+        action_result = ActionResult(dict(params))
+
+        # Get results from ThreatQ
+        self.save_progress(f"Querying for [{signature}]")
+        try:
+            details = self.query_object_details('signatures', signature, exact=exact)
+        except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
+            msg = '{} -- {}'.format(error_message, traceback.format_exc())
+            self.debug_print(msg)
+            action_result.set_status(phantom.APP_ERROR, THREATQ_ERROR_QUERY_OBJECT_DETAILS.format(error=error_message))
+            results.append(action_result)
+            return
+
+        msg = "ThreatQ found [{}] result(s)".format(len(details))
+        self.save_progress(msg)
+
+        # Set the status of the request
+        if len(details) == 0:
+            action_result.set_status(phantom.APP_SUCCESS, THREATQ_NO_DATA)
+        else:
+            action_result.set_status(phantom.APP_SUCCESS, msg)
+
+        # Add in summary information
+        action_result.update_summary({"total": len(details)})
+
+        try:
+            action_result = self.set_data_response(action_result, details)
+        except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
+            msg = '{} -- {}'.format(error_message, traceback.format_exc())
+            self.debug_print(msg)
+            action_result.set_status(phantom.APP_ERROR, THREATQ_ERROR_SET_DATA_RESPONSE.format(error=error_message))
+
+        # Add results
+        results.append(action_result)
+        
+        return results
+
     def handle_action(self, params):
 
         """
@@ -1917,7 +1976,6 @@ class ThreatQConnector(BaseConnector):
             self.add_action_result(action_result)
 
         return self.get_status()
-
 
 if __name__ == '__main__':
 
